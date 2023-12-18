@@ -35,17 +35,15 @@ contract MultiWordConsumer is ChainlinkClient, ConfirmedOwner {
 
     /**
      * @notice Initialize the link token and target oracle
-     * @dev The oracle address must be an Operator contract for multiword response
      *
-     *
-     * Sepolia Testnet details:
-     * Link Token: 0x779877A7B0D9E8603169DdbD7836e478b4624789
-     * Oracle: 0x6090149792dAAeE9D1D568c9f9a6F6B46AA29eFD (Chainlink DevRel)
+     * Mumbai Testnet details:
+     * Link Token: 0x326C977E6efc84E512bB9C30f76E30c160eD06FB
+     * Oracle: 	0x6090149792dAAeE9D1D568c9f9a6F6B46AA29eFD (Chainlink DevRel)
      * jobId: 53f9755920cd451a8fe46f5087468395
      *
      */
     constructor() ConfirmedOwner(msg.sender) {
-        setChainlinkToken(0x779877A7B0D9E8603169DdbD7836e478b4624789);
+        setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
         setChainlinkOracle(0x6090149792dAAeE9D1D568c9f9a6F6B46AA29eFD);
         jobId = "53f9755920cd451a8fe46f5087468395";
         fee = (1 * LINK_DIVISIBILITY) / 10; // 0,1 * 10**18 (Varies by network and job)

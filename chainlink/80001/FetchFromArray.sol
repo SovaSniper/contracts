@@ -10,41 +10,42 @@ import "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
  */
 
 /**
- * THIS IS AN EXAMPLE CONTRACT WHICH USES HARDCODED VALUES FOR CLARITY.
- * THIS EXAMPLE USES UN-AUDITED CODE.
+ * THIS IS AN EXAMPLE CONTRACT THAT USES HARDCODED VALUES FOR CLARITY.
+ * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
-contract APIConsumer is ChainlinkClient, ConfirmedOwner {
+contract FetchFromArray is ChainlinkClient, ConfirmedOwner {
     using Chainlink for Chainlink.Request;
 
-    uint256 public volume;
+    string public id;
+
     bytes32 private jobId;
     uint256 private fee;
 
-    event RequestVolume(bytes32 indexed requestId, uint256 volume);
+    event RequestFirstId(bytes32 indexed requestId, string id);
 
     /**
      * @notice Initialize the link token and target oracle
      *
-     * Sepolia Testnet details:
-     * Link Token: 0x779877A7B0D9E8603169DdbD7836e478b4624789
-     * Oracle: 0x6090149792dAAeE9D1D568c9f9a6F6B46AA29eFD (Chainlink DevRel)
-     * jobId: ca98366cc7314957b8c012c72f05aeeb
+     * Mumbai Testnet details:
+     * Link Token: 0x326C977E6efc84E512bB9C30f76E30c160eD06FB
+     * Oracle: 	0x6090149792dAAeE9D1D568c9f9a6F6B46AA29eFD (Chainlink DevRel)
+     * jobId: 7d80a6386ef543a3abb52817f6707e3b
      *
      */
     constructor() ConfirmedOwner(msg.sender) {
-        setChainlinkToken(0x779877A7B0D9E8603169DdbD7836e478b4624789);
+        setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
         setChainlinkOracle(0x6090149792dAAeE9D1D568c9f9a6F6B46AA29eFD);
-        jobId = "ca98366cc7314957b8c012c72f05aeeb";
+        jobId = "7d80a6386ef543a3abb52817f6707e3b";
         fee = (1 * LINK_DIVISIBILITY) / 10; // 0,1 * 10**18 (Varies by network and job)
     }
-
+    
     /**
      * Create a Chainlink request to retrieve API response, find the target
-     * data, then multiply by 1000000000000000000 (to remove decimal places from data).
+     * data which is located in a list
      */
-    function requestVolumeData() public returns (bytes32 requestId) {
+    function requestFirstId() public returns (bytes32 requestId) {
         Chainlink.Request memory req = buildChainlinkRequest(
             jobId,
             address(this),
@@ -52,41 +53,36 @@ contract APIConsumer is ChainlinkClient, ConfirmedOwner {
         );
 
         // Set the URL to perform the GET request on
+        // API docs: https://www.coingecko.com/en/api/documentation?
         req.add(
             "get",
-            "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=ETH&tsyms=USD"
+            "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&per_page=10"
         );
 
         // Set the path to find the desired data in the API response, where the response format is:
-        // {"RAW":
-        //   {"ETH":
-        //    {"USD":
-        //     {
-        //      "VOLUME24HOUR": xxx.xxx,
-        //     }
-        //    }
-        //   }
-        //  }
-        // request.add("path", "RAW.ETH.USD.VOLUME24HOUR"); // Chainlink nodes prior to 1.0.0 support this format
-        req.add("path", "RAW,ETH,USD,VOLUME24HOUR"); // Chainlink nodes 1.0.0 and later support this format
-
-        // Multiply the result by 1000000000000000000 to remove decimals
-        int256 timesAmount = 10 ** 18;
-        req.addInt("times", timesAmount);
-
+        // [{
+        //  "id": "bitcoin",
+        //  "symbol": btc",
+        // ...
+        // },
+        //{
+        // ...
+        // .. }]
+        // request.add("path", "0.id"); // Chainlink nodes prior to 1.0.0 support this format
+        req.add("path", "0,id"); // Chainlink nodes 1.0.0 and later support this format
         // Sends the request
         return sendChainlinkRequest(req, fee);
     }
 
     /**
-     * Receive the response in the form of uint256
+     * Receive the response in the form of string
      */
     function fulfill(
         bytes32 _requestId,
-        uint256 _volume
+        string memory _id
     ) public recordChainlinkFulfillment(_requestId) {
-        emit RequestVolume(_requestId, _volume);
-        volume = _volume;
+        emit RequestFirstId(_requestId, _id);
+        id = _id;
     }
 
     /**
