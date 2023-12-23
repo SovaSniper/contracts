@@ -8,7 +8,7 @@ import {Counters} from "@openzeppelin/contracts/utils/Counters.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {SQLHelpers} from "@tableland/evm/contracts/utils/SQLHelpers.sol";
 import {TablelandDeployments} from "@tableland/evm/contracts/utils/TablelandDeployments.sol";
-import {AutomationCompatible} from "@chainlink/contracts/src/v0.8/AutomationCompatible.sol";
+import {AutomationCompatible} from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 
 /**
  * @dev A dynamic NFT, built with Tableland and Chainlink VRF for mutating an NFT at some time interval
@@ -27,7 +27,7 @@ contract DynNFT is ERC721, IERC721Receiver, Ownable, AutomationCompatible {
     string private constant _TOKENS_TABLE_PREFIX = "tokens"; // Table prefix for the tokens table
     string private _baseURIString; // The Tableland gateway URL
 
-    constructor() ERC721("dNFTs", "dNFT") Ownable(msg.sender) {
+    constructor() ERC721("dNFTs", "dNFT") {
         interval = 30; // Hardcode some interval value (in seconds) for when the dynamic NFT should "grow" into the next stage
         lastTimeStamp = block.timestamp; // Track the most recent timestamp for when a dynamic VRF update occurred
         _baseURIString = TablelandDeployments.getBaseURI();
@@ -190,10 +190,6 @@ contract DynNFT is ERC721, IERC721Receiver, Ownable, AutomationCompatible {
      */
     function setBaseURI(string memory baseURIString) external onlyOwner {
         _baseURIString = baseURIString;
-    }
-
-    function _exists(uint256 tokenId) private view returns(bool) {
-        return tokenId < _tokenIdCounter.current();
     }
 
     /**

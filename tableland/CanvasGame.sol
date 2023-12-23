@@ -39,7 +39,7 @@ contract CanvasGame is
     ) public initializer {
         __ERC721URIStorage_init();
         __ERC721Holder_init();
-        __Ownable_init_unchained(msg.sender);
+        __Ownable_init_unchained();
         __Pausable_init();
         __ReentrancyGuard_init();
 
